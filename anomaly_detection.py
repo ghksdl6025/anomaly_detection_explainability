@@ -202,6 +202,7 @@ for threshold in [0.01,0.05,0.1,0.15,0.2,0.25]:
             prediction_label = 'Normal'
 
             x_test = testdf_list[pos][testdf_list[pos]['caseid'] ==caseid]
+            print(x_test)
             true_outcome = x_test['outcome']
             print(x_test.columns.values)
             x_test.drop(labels= ['caseid', 'outcome'])
