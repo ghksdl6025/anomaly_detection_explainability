@@ -121,7 +121,8 @@ for threshold in [0.01,0.05,0.1,0.15,0.2,0.25]:
 
             model_classes = models[pos].classes_
             predictions_proba = models[pos].predict_proba(x_test)[0]
-            predicted_one = model_classes[np.argmax(predictions_proba)]
+            predicted_one = models[pos].predict(x_test)
+
         
             if predicted_one  == 'Not Available':
                 prediction_label = 'Not Available'
@@ -143,7 +144,7 @@ for threshold in [0.01,0.05,0.1,0.15,0.2,0.25]:
             ad_predictions.append(prediction_label)
             ad_true.append(noiselabel)
         
-    for_confusion_matrix[threshold]=[ad_predictions, ad_true]
+        for_confusion_matrix[pos+1, threshold]=[ad_predictions, ad_true]
 
 for t in for_confusion_matrix.keys():
     print(t)

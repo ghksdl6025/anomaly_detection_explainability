@@ -1,13 +1,18 @@
 import pandas as pd
-df = pd.read_csv('./loan_baseline.pnml_noise_0.049999999999999996_iteration_1_seed_42477_sample.csv')
-
-remove_act = []
+import utils
+df = pd.read_csv('./preprocessed_loan_baseline.pnml_noise_0.09999999999999999_iteration_1_seed_14329_sample.csv')
 print(df.head)
-for pos,x in enumerate(list(df['noise'])):
-    if x =='Start' or x =='End':
-        remove_act.append(pos)
 
-dft = df.drop(remove_act, axis=0)
-dft = dft.loc[:,['Case ID','Activity','Complete Timestamp','noise']]
-dft.to_csv('./preprocessed_loan_baseline.pnml_noise_0.049999999999999996_iteration_1_seed_42477_sample.csv',index=False)
-print(dft.head)
+key_pair = {'Case ID':'caseid', 'Activity':'activity', 'Complete Timestamp':'ts'}
+df = df.rename(columns=key_pair)
+
+if 'resource' in df.columns.values:
+    df = df.loc[:,['caseid','activity','ts','resource','noise']]
+
+else:
+    df = df.loc[:,['caseid','activity','ts','noise']]
+
+
+for prefix in range(1,16):
+    prefix_df = utils.filter_by_prefix(df, prefix)
+    prefix_df.to_csv('./data/Prefix %s dataset.csv'%(prefix),index=False)

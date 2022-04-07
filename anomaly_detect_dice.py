@@ -107,14 +107,19 @@ m_housing = dice_ml.Model(model=model_housing, backend='sklearn', model_type='cl
 
 exp_genetic_housing = Dice(d_housing, m_housing, method='genetic')
 
-test_df = datasetX[datasetX['caseid'].isin(test_ids)]
+test_df = datasetX[datasetX['caseid'].isin(test_ids)].sort_values(by='caseid')
 
-query_instance_housing = test_df[3:4]
-test_outcome = query_instance_housing[outcome_name]
+
+test_df = pd.read_csv('./testdf.csv')
+print(test_ids)
+query_instance_housing = test_df.iloc[3,:]
+print(query_instance_housing)
+test_outcome = query_instance_housing[outcome_name].values
 query_instance_housing = query_instance_housing.drop(columns=['caseid', outcome_name], axis=1)
 predicted_one = model_housing.predict(query_instance_housing)
+model_classes = model_housing.classes_
 predicted_proba = model_housing.predict_proba(query_instance_housing)
-print(predicted_one, predicted_proba, test_outcome)
+print(predicted_one, predicted_proba, test_outcome, list(model_classes).index(test_outcome[0]))
 
 # genetic_housing = exp_genetic_housing.generate_counterfactuals(
 #                                 query_instance_housing,
