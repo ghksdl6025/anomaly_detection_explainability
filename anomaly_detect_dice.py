@@ -30,6 +30,7 @@ from sklearn.ensemble import RandomForestClassifier as rfcls
 ########################
 
 df = pd.read_csv('./preprocessed_loan_baseline.pnml_noise_0.09999999999999999_iteration_1_seed_14329_sample.csv')
+# df = pd.read_csv('./data/Prefix 10 dataset.csv')
 used_models = 'XGB'
 
 key_pair = {'Case ID':'caseid', 'Activity':'activity', 'Complete Timestamp':'ts'}
@@ -50,7 +51,7 @@ outcome = []
 for _, group in groups:
     group = group.reset_index(drop=True)
     actlist = list(group['activity'])
-    outcomelist = actlist[1:] + [np.nan]
+    outcomelist = actlist[1:] + ['End']
     group['outcome'] = outcomelist
     concating.append(group)
 
@@ -110,16 +111,18 @@ exp_genetic_housing = Dice(d_housing, m_housing, method='genetic')
 test_df = datasetX[datasetX['caseid'].isin(test_ids)].sort_values(by='caseid')
 
 
-test_df = pd.read_csv('./testdf.csv')
-print(test_ids)
+# test_df = pd.read_csv('./testdf.csv')
+# print(test_ids)
 query_instance_housing = test_df.iloc[3,:]
+
+test_outcome = query_instance_housing[outcome_name]
+query_instance_housing = query_instance_housing.drop(labels=['caseid', outcome_name])
+query_instance_housing = np.array(query_instance_housing).reshape(1,-1)
 print(query_instance_housing)
-test_outcome = query_instance_housing[outcome_name].values
-query_instance_housing = query_instance_housing.drop(columns=['caseid', outcome_name], axis=1)
 predicted_one = model_housing.predict(query_instance_housing)
 model_classes = model_housing.classes_
 predicted_proba = model_housing.predict_proba(query_instance_housing)
-print(predicted_one, predicted_proba, test_outcome, list(model_classes).index(test_outcome[0]))
+print(predicted_one, predicted_proba, model_classes, test_outcome)
 
 # genetic_housing = exp_genetic_housing.generate_counterfactuals(
 #                                 query_instance_housing,
