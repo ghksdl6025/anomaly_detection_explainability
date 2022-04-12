@@ -8,7 +8,7 @@ from xgboost import XGBClassifier as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-import tensorflow as tf
+# import tensorflow as tf
 
 import pandas as pd
 import numpy as np
@@ -83,7 +83,7 @@ d = dice_ml.Data(dataframe=train_dataset,
 
 numerical = ['age', 'hours_per_week']
 categorical = x_train.columns.difference(numerical)
-
+print(categorical)
 
 categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(handle_unknown='ignore'))])
 transformations = ColumnTransformer(transformers=[('cat', categorical_transformer, categorical)])

@@ -29,104 +29,151 @@ from sklearn.ensemble import RandomForestClassifier as rfcls
 ### Data preparation ###
 ########################
 
-df = pd.read_csv('./preprocessed_loan_baseline.pnml_noise_0.09999999999999999_iteration_1_seed_14329_sample.csv')
-# df = pd.read_csv('./data/Prefix 10 dataset.csv')
-used_models = 'XGB'
+df = pd.read_csv('./data/Prefix 5 dataset.csv')
+
+used_models = 'RF'
 
 key_pair = {'Case ID':'caseid', 'Activity':'activity', 'Complete Timestamp':'ts'}
 df = df.rename(columns=key_pair)
 
 if 'resource' in df.columns.values:
-    df = df.loc[:,['caseid','activity','ts','resource','noise']]
+    df = df.loc[:,['caseid','activity','ts','resource','outcome','noise']]
 
 else:
-    df = df.loc[:,['caseid','activity','ts','noise']]
+    df = df.loc[:,['caseid','activity','ts','noise', 'outcome']]
 
 groups = df.groupby('caseid')
 concating = []
-max_case_len = max([len(group) for _, group in groups])
-caseids = list(set(df['caseid']))
+
+outcome_dict = {x: pos+1 for pos, x in enumerate(list(set(df['outcome'])))}
+new_outcome = []
+for x in list(df['outcome']):
+    new_outcome.append(outcome_dict[x])
+
+df['outcome'] =new_outcome
+
 
 outcome = []
 for _, group in groups:
+    group['ts'] = pd.to_datetime(group['ts'])
+    group = group.sort_values(by='ts')
     group = group.reset_index(drop=True)
+    case_length = len(group)
+    prep_group = {'caseid': list(group['caseid'])[-1], 'outcome': list(group['outcome'])[-1]}
+    
+    ####################
+    ###Activity label###
+    ####################
     actlist = list(group['activity'])
-    outcomelist = actlist[1:] + ['End']
-    group['outcome'] = outcomelist
-    concating.append(group)
+    new_actcolumns =['Activity_%s'%(x+1) for x in range(case_length)]
+    for pos, n in enumerate(new_actcolumns):
+        prep_group[n] = actlist[pos]
+    
 
-dfn = pd.concat(concating)
+    ####################
+    ###  Timestamp   ###
+    ####################
 
-max_case_len =15
-idslist = []
-for prefix in range(1, max_case_len):
-    idslist.append(utils.indexbase_encoding(dfn,prefix))
+    durationlist = []
+    for pos, x in enumerate(list(group['ts'])):
+        if pos ==0:
+            durationlist.append(0)
+        else:
+            durationlist.append((x - list(group['ts'])[pos-1]).total_seconds())
+    duration_index ={'Duration_%s'%(x+1): durationlist[x] for x in range(len(durationlist))}
+    cumdurationlist = [(x - list(group['ts'])[0]).total_seconds() for x in list(group['ts'])]
+    cumduration_index ={'Cumduration_'+str(x+1): cumdurationlist[x] for x in range(len(cumdurationlist))}
 
-datasetX = idslist[-1]
+    prep_group.update(duration_index)
+    prep_group.update(cumduration_index)
+
+    ####################
+    ###   Resource   ###
+    ####################
+    
+    if 'resource' in group.columns.values:
+        reslist = list(group['resource'])
+        new_resourceolumns = ['Resource_%s'%(x+1) for x in range(case_length)]
+        for pos, n in enumerate(new_resourceolumns):
+            prep_group[n] = reslist[pos]
+    
+    ####################
+    ###  Concating   ###
+    ####################
+#     print(prep_group)
+#     print(pd.DataFrame.from_dict(prep_group))
+
+    concating.append(prep_group)
+
+dfn = pd.DataFrame.from_dict(concating)
+
+datasetX = dfn.drop(columns=['caseid'],axis=1)
 
 outcome_name = 'outcome'
-target = datasetX[outcome_name]
 categorical_features =[]
 continuous_features = []
 
+
 for x in datasetX.columns.values:
-    if 'Cum' in x:
-        continuous_features.append(x)
-    elif x =='caseid' or x ==outcome:
+    if x =='caseid' or x==outcome_name:
         pass
-    else:
+    elif datasetX[x].dtype == 'object':
         categorical_features.append(x)
+    else:
+        continuous_features.append(x)
 
 
-np.random.seed(0)
-caseids = list(set(datasetX['caseid']))
-trainids = np.random.choice(caseids, int(len(caseids)*0.7), replace=False)
-traindf = datasetX[datasetX['caseid'].isin(trainids)].reset_index(drop=True)
-testdf = datasetX[~datasetX['caseid'].isin(trainids)].reset_index(drop=True)
+target = datasetX[outcome_name]
+print(target)
+datasetXY = datasetX.drop(outcome_name,axis=1)
 
+x_train, x_test, y_train, y_test = train_test_split(datasetXY,
+                                                    target,
+                                                    test_size=0.2,
+                                                    random_state=0,
+                                                    stratify=target)
 
-y_train = traindf[outcome_name]
-x_train = traindf.drop(columns=[outcome_name,'caseid'],axis=1)
+numeric_transformer = Pipeline(steps=[
+    ('scaler', StandardScaler())])
 
-y_test = testdf[outcome_name]
-test_ids = set(testdf['caseid'])
-x_test = testdf.drop(columns=[outcome_name,'caseid'],axis=1)
+categorical_transformer = Pipeline(steps=[
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))])
 
+transformations = ColumnTransformer(
+    transformers=[
+        ('num', numeric_transformer, continuous_features),
+        ('cat', categorical_transformer, categorical_features)])
 
-regr_housing = Pipeline(steps=[
-                        ('classifier', rfcls())
-                        ])
+# Append classifier to preprocessing pipeline.
+# Now we have a full prediction pipeline.
+clf = Pipeline(steps=[('preprocessor', transformations),
+                           ('classifier', rfcls(n_estimators = 10))])
+model = clf.fit(x_train, y_train)
 
-model_housing = regr_housing.fit(x_train, y_train)
+d = dice_ml.Data(dataframe=datasetX,
+                  continuous_features=continuous_features,
+                  outcome_name=outcome_name)
 
-datasetXy = datasetX.drop(columns=['caseid'], axis=1)
+# We provide the type of model as a parameter (model_type)
+m = dice_ml.Model(model=model, backend="sklearn", model_type='classifier')
 
-d_housing = dice_ml.Data(dataframe = datasetXy,
-                        continuous_features = continuous_features,
-                        outcome_name=outcome_name)
-m_housing = dice_ml.Model(model=model_housing, backend='sklearn', model_type='classifier')
+exp_genetic = Dice(d, m, method="genetic")
 
-exp_genetic_housing = Dice(d_housing, m_housing, method='genetic')
+# Single input
+query_instances = x_test[8:15]
+prediction = model.predict(query_instances)[0]
 
-test_df = datasetX[datasetX['caseid'].isin(test_ids)].sort_values(by='caseid')
+actual_activity_label = [activity for activity,act_num in outcome_dict.items() if act_num == prediction][0]
+wanted_activity_label = [activity for activity,act_num in outcome_dict.items() if act_num == 16][0]
+print(actual_activity_label)
+print(wanted_activity_label)
+print(model.predict_proba(query_instances))
+print(model.classes_)
 
-
-# test_df = pd.read_csv('./testdf.csv')
-# print(test_ids)
-query_instance_housing = test_df.iloc[3,:]
-
-test_outcome = query_instance_housing[outcome_name]
-query_instance_housing = query_instance_housing.drop(labels=['caseid', outcome_name])
-query_instance_housing = np.array(query_instance_housing).reshape(1,-1)
-print(query_instance_housing)
-predicted_one = model_housing.predict(query_instance_housing)
-model_classes = model_housing.classes_
-predicted_proba = model_housing.predict_proba(query_instance_housing)
-print(predicted_one, predicted_proba, model_classes, test_outcome)
-
-# genetic_housing = exp_genetic_housing.generate_counterfactuals(
-#                                 query_instance_housing,
-#                                 total_CFs=3,
-#                                 desired_range=[,1])
-# genetic_housing.visualize_as_dataframe(show_only_changes=True)
-
+# features_to_vary =categorical_features + [x for x in continuous_features if 'Duration' in x]
+# features_to_vary.remove('Duration_1')
+# features_to_vary.remove('Activity_1')
+# print(features_to_vary)
+# genetic_iris = exp_genetic.generate_counterfactuals(query_instances, total_CFs=3, desired_class=16, features_to_vary=features_to_vary)
+# results = genetic_iris.visualize_as_dataframe(show_only_changes=False)
+# results

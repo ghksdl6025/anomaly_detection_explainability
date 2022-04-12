@@ -26,13 +26,12 @@ def filter_by_prefix(df,prefix):
             encoded_df.append(group)
     return pd.concat(encoded_df)
 
-def time_to_cum(df):
+def time_to_cumlative(df):
     df['ts'] = pd.to_datetime(df['ts'])
     groups = df.groupby('caseid')
     encoded_df=[]
         
     for case,group in groups: 
-        activitylist = list(group['activity'])        
         group = group.reset_index(drop=True)
         outcome = set(group['outcome']).pop()
         cumdurationlist = [(x - list(group['ts'])[0]).total_seconds() for x in list(group['ts'])]

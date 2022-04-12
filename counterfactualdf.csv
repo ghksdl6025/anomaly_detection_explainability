@@ -1,0 +1,4 @@
+Activity_1,Activity_2,Activity_3,Activity_4,Activity_5,Duration_1,Duration_2,Duration_3,Duration_4,Duration_5,Cumduration_1,Cumduration_2,Cumduration_3,Cumduration_4,Cumduration_5,outcome
+start_event_Loan  application received,Appraise property,Appraise property,Assess eligibility,end_event_Loan  application approved,0.0,0.0,0.0,0.0,0.0,0.0,2401.9,2401.93,9688.753,9688.753,2
+start_event_Loan  application received,Appraise property,Appraise property,end_event_Loan application rejected,end_event_Loan  application approved,0.0,0.0,0.0,0.0,0.0,0.0,2401.9,2401.93,9688.753,9688.753,2
+start_event_Loan  application received,Appraise property,Check  application  form completeness,Reject application,Check credit history,0.0,497788.8,0.0,0.0,0.0,0.0,2401.9,2401.93,9688.753,9688.753,2
