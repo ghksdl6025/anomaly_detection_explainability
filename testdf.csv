@@ -1,2 +1,2 @@
 Activity_1,Activity_2,Activity_3,Activity_4,Activity_5,Duration_1,Duration_2,Duration_3,Duration_4,Duration_5,Cumduration_1,Cumduration_2,Cumduration_3,Cumduration_4,Cumduration_5
-start_event_Loan  application received,Check  application  form completeness,end_event_Loan application rejected,Check credit history,Send acceptance pack,0,2401.93,0.0,7286.823,0.0,0.0,2401.93,2401.93,9688.753,9688.753
+Receive updated application,start_event_Loan  application received,Check  application  form completeness,Receive updated application,Return application back to applicant,0,88571.446,868.376,0.0,1447.507,0.0,88571.446,89439.822,89439.822,90887.329
