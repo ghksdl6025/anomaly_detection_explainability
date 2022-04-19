@@ -1,4 +1,4 @@
 Activity_1,Activity_2,Activity_3,Activity_4,Activity_5,Duration_1,Duration_2,Duration_3,Duration_4,Duration_5,Cumduration_1,Cumduration_2,Cumduration_3,Cumduration_4,Cumduration_5,outcome
-Receive updated application,start_event_Loan  application received,Check  application  form completeness,Verify repayment agreement,Appraise property,0.0,0.0,868.4,0.0,7284.3,0.0,88571.4,89439.82,89439.822,90887.329,1
-Receive updated application,Assess eligibility,Check  application  form completeness,Check  application  form completeness,Check  application  form completeness,0.0,0.0,868.4,0.0,0.0,0.0,88571.4,89439.82,89439.822,90887.329,1
-Receive updated application,Assess eligibility,Check  application  form completeness,Assess eligibility,Appraise property,0.0,0.0,868.4,0.0,6931.8,0.0,88571.4,89439.82,89439.822,90887.329,1
+start_event_Loan  application received,Approve application,Return application back to applicant,Assess loan risk,Assess loan risk,0.0,364184.6,11462.8,26386.3,13067.0,0.0,2360.3,4282.16,5486.736,12776.885,2
+start_event_Loan  application received,Approve application,Return application back to applicant,end_event_Loan application rejected,Assess loan risk,0.0,364184.6,11462.8,26386.3,5896.7,0.0,2360.3,4282.16,5486.736,12776.885,2
+start_event_Loan  application received,Return application back to applicant,Send home insurance quote,Check credit history,Check  application  form completeness,0.0,7477.7,15936.2,8970.8,17100.4,0.0,2360.3,4282.16,5486.736,12776.885,2
